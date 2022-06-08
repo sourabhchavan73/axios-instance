@@ -1,0 +1,77 @@
+import axios from 'axios';
+import { getAuthTokenFromPref } from '../preferences/userPref';
+
+function submitAxiosRequest(requestType, requestUrl, requestData, authTokenRequired, contentType, requestParams) { 
+    return new Promise((resolve) => {
+        if (authTokenRequired) {
+            getAuthTokenFromPref().then((authToken) => {
+                if (authToken) {
+                    axios({
+                        url: requestUrl,
+                        method: requestType,
+                        headers: {
+                            'Content-Type': contentType ? contentType : 'application/json',
+                            'Authorization': 'Bearer ' + authToken
+                        },
+                        data: requestData,
+                        params: requestParams !== undefined && requestParams
+                    }).then(response => {
+                        resolve(response);
+                    }).catch(error => {
+                        if (error.response) {
+                            let err = error.response.data;
+                            resolve(err);
+                        }
+                    });
+                } else {
+                    resolve({ success: false, error: "No auth token present" });
+                }
+            });
+        } else {
+            axios({
+                url: requestUrl,
+                method: requestType,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                data: requestData
+            }).then(response => {
+                resolve(response);
+            }).catch(error => {
+                if (error.response) {
+                    let err = error.response.data.error;
+                    let errResponse = err[Object.keys(err)[0]];
+                    resolve(errResponse);
+                }
+            });
+        }
+    });
+}
+
+export function submitRequestToServer(requestType, requestUrl, requestData, authTokenRequired, contentType, requestParams) {
+    return new Promise((resolve) => {
+        if (requestType == "POST") {
+            submitAxiosRequest("POST", requestUrl, requestData, authTokenRequired, contentType, requestParams).then((response) => {
+                resolve(response);
+            });
+        } else if (requestType == "PATCH") {
+            submitAxiosRequest("PATCH", requestUrl, requestData, authTokenRequired, contentType, requestParams).then((response) => {
+                resolve(response);
+            });
+        } else if (requestType == "GET") {
+            submitAxiosRequest("GET", requestUrl, requestData, authTokenRequired, contentType, requestParams).then((response) => {
+                resolve(response);
+            });
+        } else if (requestType == "PUT") {
+            submitAxiosRequest("PUT", requestUrl, requestData, authTokenRequired, contentType, requestParams).then((response) => {
+                resolve(response);
+            });
+        } else if (requestType == "DELETE") {
+            submitAxiosRequest("DELETE", requestUrl, requestData, authTokenRequired, contentType, requestParams).then((response) => {
+                resolve(response);
+            });
+        } else {
+            resolve("");
+        }
+    });
+}
